@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Category Blogs</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark text-white">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid bg-primary">
+      <a class="navbar-brand fs-3 fst-italic" href="#">Blogs by Category</a>
+    </div>
+  </nav>
+
+  <div class="container mt-5">
+    <h2 id="categoryHeading" class="text-center mb-4"></h2>
+    <div id="blogsContainer" class="row"></div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const categoryType = params.get("type");
+
+    document.getElementById("categoryHeading").textContent = `Showing blogs in "${categoryType}"`;
+
+    const blogs = JSON.parse(localStorage.getItem("blogs")) || [];
+    const filteredBlogs = blogs.filter(blog => blog.category.toLowerCase() === categoryType.toLowerCase());
+
+    const container = document.getElementById("blogsContainer");
+
+    if (filteredBlogs.length === 0) {
+      container.innerHTML = `<p class="text-center text-danger">No blogs found in the "${categoryType}" category.</p>`;
+    } else {
+      filteredBlogs.forEach(blog => {
+        const col = document.createElement("div");
+        col.className = "col-md-4 mb-4";
+        col.innerHTML = `
+          <div class="card bg-secondary text-white h-100">
+            <div class="card-body">
+              <h5 class="card-title">${blog.title}</h5>
+              <h6 class="card-subtitle mb-2 text-light">By: ${blog.author}</h6>
+              <p class="card-text">${blog.content.substring(0, 100)}...</p>
+              <a href="detail.html?id=${blog.id}" class="btn btn-light">Read More</a>
+            </div>
+          </div>
+        `;
+        container.appendChild(col);
+      });
+    }
+  </script>
+</body>
+</html>
