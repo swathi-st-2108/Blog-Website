@@ -3,27 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <title>Blog Details</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-image: url('Images/Background.jpg'); 
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      color: white;
+    }
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: -1;
+    }
+  </style>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-dark text-white">
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid bg-primary">
       <a class="navbar-brand fs-3 fst-italic" href="#">Blogs !!</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse fs-5 mt-3 mb-3" id="navbarNav">
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="index.html">Blog</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="blog.html">Collections</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active" href="#">Details</a>
-          </li>
+          <li class="nav-item"><a class="nav-link" href="index.html">Blog</a></li>
+          <li class="nav-item"><a class="nav-link" href="blog.html">Collections</a></li>
+          <li class="nav-item"><a class="nav-link active" href="#">Details</a></li>
         </ul>
       </div>
     </div>
@@ -33,6 +49,7 @@
     <h1 id="detailTitle"></h1>
     <h6 class="text-info" id="detailAuthor"></h6>
     <h5 class="text-muted" id="detailCategory"></h5>
+    <img id="detailImage" class="img-fluid my-4" style="max-height: 400px;" />
     <p class="mt-4" id="detailContent"></p>
 
     <div class="mt-4">
@@ -52,23 +69,26 @@
         <input type="text" class="form-control" id="editAuthor">
       </div>
       <div class="mb-3">
-        <div class="mb-3">
-  <label class="form-label">Category</label>
-  <select class="form-control" id="editCategory">
-    <option value="Technology">Technology</option>
-    <option value="History">History</option>
-    <option value="Sports">Sports</option>
-    <option value="Science">Hobbies</option>
-    <option value="Health">Health</option>
-    <option value="Travel">Travel</option>
-
-  </select>
-</div>
-
+        <label class="form-label">Category</label>
+        <select class="form-control" id="editCategory">
+          <option value="Technology">Technology</option>
+          <option value="History">History</option>
+          <option value="Sports">Sports</option>
+          <option value="Hobbies">Hobbies</option>
+          <option value="Health">Health</option>
+          <option value="Travel">Travel</option>
+        </select>
       </div>
       <div class="mb-3">
         <label class="form-label">Content</label>
         <textarea class="form-control" id="editContent" rows="5"></textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Change Image (optional)</label>
+        <input type="file" class="form-control" id="editImage" accept="image/*">
+        <img id="previewEditImage" src="#" style="display:none; max-height:200px; margin-top:10px;" />
+        <img id="detailImage" class="img-fluid my-4" style="max-height: 400px; display: none;" />
+
       </div>
       <button class="btn btn-success" id="saveBtn">Save</button>
     </div>
@@ -77,58 +97,90 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const blogId = parseInt(params.get("id"));
-
     const blogs = JSON.parse(localStorage.getItem("blogs")) || [];
     const blog = blogs.find(b => b.id === blogId);
 
-    if (blog) {
+    if (!blog) {
+      document.body.innerHTML = "<p class='text-danger text-center'>Blog not found.</p>";
+    } else {
       document.getElementById("detailTitle").textContent = blog.title;
       document.getElementById("detailCategory").textContent = blog.category;
       document.getElementById("detailAuthor").textContent = "By: " + blog.author;
       document.getElementById("detailContent").textContent = blog.content;
-    } 
-    
-    else {
-      document.body.innerHTML = "<p class='text-danger text-center'>Blog not found.</p>";
-   } 
+      document.getElementById("detailImage").src = blog.image;
 
-    document.getElementById("editBtn").addEventListener("click", () => {
-      document.getElementById("editForm").style.display = "block";
-      document.getElementById("editTitle").value = blog.title;
-      document.getElementById("editCategory").value = blog.category;
-      document.getElementById("editAuthor").value = blog.author;
-      document.getElementById("editContent").value = blog.content;
-    });
+      document.getElementById("editBtn").addEventListener("click", () => {
+        document.getElementById("editForm").style.display = "block";
+        document.getElementById("editTitle").value = blog.title;
+        document.getElementById("editCategory").value = blog.category;
+        document.getElementById("editAuthor").value = blog.author;
+        document.getElementById("editContent").value = blog.content;
+        document.getElementById("previewEditImage").src = blog.image;
+        document.getElementById("previewEditImage").style.display = "block";
+      });
 
-    document.getElementById("saveBtn").addEventListener("click", () => {
-      const newTitle = document.getElementById("editTitle").value.trim();
-      const newCategory = document.getElementById("editCategory").value.trim();
-      const newAuthor = document.getElementById("editAuthor").value.trim();
-      const newContent = document.getElementById("editContent").value.trim();
+      document.getElementById("editImage").addEventListener("change", function () {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          document.getElementById("previewEditImage").src = e.target.result;
+          document.getElementById("previewEditImage").style.display = "block";
+        };
+        if (this.files[0]) reader.readAsDataURL(this.files[0]);
+      });
 
-      if (newTitle && newCategory && newAuthor && newContent) {
-        blog.title = newTitle;
-        blog.category = newCategory;
-        blog.author = newAuthor;
-        blog.content = newContent;
+      document.getElementById("saveBtn").addEventListener("click", () => {
+        const newTitle = document.getElementById("editTitle").value.trim();
+        const newCategory = document.getElementById("editCategory").value.trim();
+        const newAuthor = document.getElementById("editAuthor").value.trim();
+        const newContent = document.getElementById("editContent").value.trim();
+        const newImageInput = document.getElementById("editImage");
 
-        localStorage.setItem("blogs", JSON.stringify(blogs));
-        alert("Blog updated successfully!");
-        location.reload();
-      } else {
-        alert("Please fill in all fields.");
-      }
-    });
+        if (newTitle && newCategory && newAuthor && newContent) {
+          blog.title = newTitle;
+          blog.category = newCategory;
+          blog.author = newAuthor;
+          blog.content = newContent;
 
-    document.getElementById("deleteBtn").addEventListener("click", () => {
-      if (confirm("Are you sure you want to delete this blog?")) {
-        const index = blogs.findIndex(b => b.id === blogId);
-        blogs.splice(index, 1);
-        localStorage.setItem("blogs", JSON.stringify(blogs));
-        alert("Blog deleted!");
-        window.location.href = "blog.html";
-      }
-    });
+          if (newImageInput.files.length > 0) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              blog.image = e.target.result;
+              localStorage.setItem("blogs", JSON.stringify(blogs));
+              alert("Blog updated successfully!");
+              location.reload();
+            };
+            reader.readAsDataURL(newImageInput.files[0]);
+          } else {
+            localStorage.setItem("blogs", JSON.stringify(blogs));
+            alert("Blog updated successfully!");
+            location.reload();
+          }
+        } else {
+          alert("Please fill in all fields.");
+        }
+      });
+
+      document.getElementById("deleteBtn").addEventListener("click", () => {
+        if (confirm("Are you sure you want to delete this blog?")) {
+          const index = blogs.findIndex(b => b.id === blogId);
+          blogs.splice(index, 1);
+          localStorage.setItem("blogs", JSON.stringify(blogs));
+          alert("Blog deleted!");
+          window.location.href = "blog.html";
+        }
+      });
+    }
+
+    if (blog.image) {
+  document.getElementById("detailImage").src = blog.image;
+  document.getElementById("detailImage").style.display = "block";
+} else {
+  document.getElementById("detailImage").style.display = "none";
+}
+
+
+
+
   </script>
 </body>
 </html>

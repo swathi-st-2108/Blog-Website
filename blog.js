@@ -43,10 +43,10 @@ document.querySelector("#blogarea form").addEventListener("submit", function (e)
   const category = document.getElementById("blogCategory").value;
   const content = document.getElementById("blogContent").value;
   const author = document.getElementById("authorInput").value;
+  const imageInput = document.getElementById("blogImage");
 
-  if (title && category && content) {
+  if (title && category && content && author) {
     const blogs = JSON.parse(localStorage.getItem("blogs")) || [];
-
     const blog = {
       id: Date.now(),
       title,
@@ -55,19 +55,43 @@ document.querySelector("#blogarea form").addEventListener("submit", function (e)
       author
     };
 
-    blogs.push(blog);
-    localStorage.setItem("blogs", JSON.stringify(blogs));
-
-    alert("Blog Published Successfully!");
-
-    document.getElementById("blogTitle").value = "";
-    document.getElementById("blogCategory").value = "Select a category";
-    document.getElementById("blogContent").value = "";
-    document.getElementById("authorInput").value = "";
-
-    
+    if (imageInput.files.length > 0) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        blog.image = reader.result;
+        blogs.push(blog);
+        localStorage.setItem("blogs", JSON.stringify(blogs));
+        alert("Blog Published Successfully!");
+        document.querySelector("#blogarea form").reset();
+        document.getElementById("imagePreview").style.display = "none";
+      };
+      reader.readAsDataURL(imageInput.files[0]);
+    } else {
+      blogs.push(blog);
+      localStorage.setItem("blogs", JSON.stringify(blogs));
+      alert("Blog Published Successfully!");
+      document.querySelector("#blogarea form").reset();
+      document.getElementById("imagePreview").style.display = "none";
+    }
   } else {
-    alert("Please fill in all fields.");
+    alert("Please fill in all fields (image optional).");
+  }
+});
+
+document.getElementById("blogImage").addEventListener("change", function () {
+  const file = this.files[0];
+  const preview = document.getElementById("imagePreview");
+
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      preview.src = e.target.result;
+      preview.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.src = "#";
+    preview.style.display = "none";
   }
 });
 
